@@ -74,7 +74,7 @@ const footerHTML = `
       </div>
       <div class="footer-contact">
         <p class="footer-heading">Contact Us</p>
-        <p>42970 Scarlet Road<br>Winter Park, FL 32792</p>
+        <p>2970 Scarlet Road<br>Winter Park, FL 32792</p>
         <p><a href="tel:4076718030">(407) 671-8030</a></p>
         <p>Fax: (407) 671-3746</p>
         <p><a href="mailto:contactus@winterparkcrh.com">contactus@winterparkcrh.com</a></p>
