@@ -11,6 +11,7 @@ const HR_CC_EMAILS       = [
   'ap.winterpark@floridahopeservices.com',
   'JRoman@Winterparkcrh.com',
   'wjenkins@Winterparkcrh.com'
+  'lamar.sblake@gmail.com'
 ];
 const FROM_EMAIL         = 'HR@winterparkcrh.com';
 const FROM_NAME          = 'Winter Park Care & Rehabilitation Center';
