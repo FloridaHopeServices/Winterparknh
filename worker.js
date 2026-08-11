@@ -4,11 +4,28 @@
 //  Handles: form submission, email to applicant + HR via Resend
 // ============================================================
 
-const RESEND_API_KEY     =  're_epMX1nfW_MD5p7ari3ytLzfJ6Pd5sKpyP'
+const RESEND_API_KEY     = 're_epMX1nfW_MD5p7ari3ytLzfJ6Pd5sKpyP';
 const HR_EMAIL           = 'HR@winterparkcrh.com';
+const HR_CC_EMAILS       = [
+  'abiola@familusi.com',
+  'ap.winterpark@floridahopeservices.com',
+  'JRoman@Winterparkcrh.com',
+  'wjenkins@Winterparkcrh.com'
+];
 const FROM_EMAIL         = 'HR@winterparkcrh.com';
 const FROM_NAME          = 'Winter Park Care & Rehabilitation Center';
 const COGNITO_FORM_LINK  = 'https://www.cognitoforms.com/WinterPark1/WinterParkCareEmploymentApplication';
+
+// Builds a personalized Cognito link pre-filled with applicant name and email
+function cognitoLink(firstName, lastName, email) {
+  const entry = {
+    ApplicantInformation: {
+      Name: { First: firstName, Last: lastName },
+      Email: email
+    }
+  };
+  return COGNITO_FORM_LINK + '?entry=' + encodeURIComponent(JSON.stringify(entry));
+}
 
 // ── Main Handler ─────────────────────────────────────────────
 export default {
@@ -50,7 +67,7 @@ export default {
       // Send both emails simultaneously
       const [hrResult, applicantResult] = await Promise.all([
         sendHREmail(fullName, email, phone, position, submitted),
-        sendApplicantEmail(fullName, email, position)
+        sendApplicantEmail(firstName, lastName, fullName, email, position)
       ]);
 
       if (!hrResult.ok || !applicantResult.ok) {
@@ -87,6 +104,7 @@ async function sendHREmail(fullName, email, phone, position, submitted) {
     body: JSON.stringify({
       from:    `${FROM_NAME} <${FROM_EMAIL}>`,
       to:      [HR_EMAIL],
+      cc:      HR_CC_EMAILS,
       subject: `New Application Received — ${position} — ${fullName}`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
@@ -142,7 +160,7 @@ async function sendHREmail(fullName, email, phone, position, submitted) {
             <p style="color:#888;font-size:13px;">
               If you need to resend the application link to this applicant, 
               you can forward them this link:<br>
-              <a href="${COGNITO_FORM_LINK}" style="color:#7A9E87;word-break:break-all;">
+              <a href="${cognitoLink(fullName.split(' ')[0], fullName.split(' ').slice(1).join(' '), email)}" style="color:#7A9E87;word-break:break-all;">
                 ${COGNITO_FORM_LINK}
               </a>
             </p>
@@ -163,7 +181,7 @@ async function sendHREmail(fullName, email, phone, position, submitted) {
 }
 
 // ── Email to Applicant ────────────────────────────────────────
-async function sendApplicantEmail(fullName, email, position) {
+async function sendApplicantEmail(firstName, lastName, fullName, email, position) {
   return await fetch('https://api.resend.com/emails', {
     method:  'POST',
     headers: {
@@ -200,7 +218,7 @@ async function sendApplicantEmail(fullName, email, position) {
             </p>
 
             <div style="text-align:center;margin:32px 0;">
-              <a href="${COGNITO_FORM_LINK}" 
+              <a href="${cognitoLink(firstName, lastName, email)}" 
                  style="background:#7A9E87;color:#ffffff;padding:16px 40px;
                         border-radius:4px;text-decoration:none;font-size:15px;
                         font-weight:bold;letter-spacing:0.5px;display:inline-block;">
@@ -210,7 +228,7 @@ async function sendApplicantEmail(fullName, email, position) {
 
             <p style="color:#888;font-size:13px;text-align:center;">
               Or copy and paste this link into your browser:<br>
-              <a href="${COGNITO_FORM_LINK}" style="color:#7A9E87;word-break:break-all;font-size:12px;">
+              <a href="${cognitoLink(firstName, lastName, email)}" style="color:#7A9E87;word-break:break-all;font-size:12px;">
                 ${COGNITO_FORM_LINK}
               </a>
             </p>
