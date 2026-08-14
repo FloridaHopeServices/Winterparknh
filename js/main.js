@@ -126,25 +126,46 @@ document.querySelectorAll('.animate-in').forEach((el, i) => {
 });
 
 // ── Form Success Handler ─────────────────────────────────────
-function handleFormSubmit(formId, successTitle) {
+const CONTACT_WORKER_URL = 'https://winterpark-contact-worker.round-brook-6b93.workers.dev';
+
+function handleFormSubmit(formId, successTitle, formType) {
   const form = document.getElementById(formId);
   if (!form) return;
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     const btn = form.querySelector('button[type="submit"]');
+    const originalBtnText = btn.textContent;
     btn.textContent = 'Sending…';
     btn.disabled = true;
-    // TODO: Replace setTimeout with real fetch() call to Cloudflare Worker
-    setTimeout(() => {
-      form.innerHTML = `
-        <div class="form-success">
-          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#7A9E87" stroke-width="1.5">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-          <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin:16px 0 8px;">${successTitle}</h3>
-          <p style="color:#4A5568;">We'll be in touch within one business day.</p>
-        </div>`;
-    }, 1000);
+
+    const formData = new FormData(form);
+    const payload = { formType };
+    formData.forEach((value, key) => { payload[key] = value; });
+
+    fetch(CONTACT_WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Submission failed');
+        return res.json();
+      })
+      .then(() => {
+        form.innerHTML = `
+          <div class="form-success">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#7A9E87" stroke-width="1.5">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;margin:16px 0 8px;">${successTitle}</h3>
+            <p style="color:#4A5568;">We'll be in touch within one business day.</p>
+          </div>`;
+      })
+      .catch(() => {
+        btn.textContent = originalBtnText;
+        btn.disabled = false;
+        alert("Sorry, something went wrong sending your request. Please call us directly or try again in a moment.");
+      });
   });
 }
